@@ -1,0 +1,5 @@
+PyInstaller
+PySide6==6.9.1
+
+mediapipe==0.10.21
+python-osc==1.9.3

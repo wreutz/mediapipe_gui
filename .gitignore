@@ -1,0 +1,16 @@
+/.vscode/.ropeproject/
+/build
+/dist
+/dist_dmg
+/venv/
+.history/
+bin/
+
+*.DS_Store
+*.key
+*.pem
+*.pyc
+*.sublime-workspace
+
+.ipynb_checkpoints
+*.dmg

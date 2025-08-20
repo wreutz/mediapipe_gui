@@ -34,6 +34,8 @@ class CameraThread(QThread):
         self.flip_horizontal = flip_horizontal
         self.is_running = False
         self.calculate_fps_prev_time = 0.0
+        self.width = 640
+        self.height = 480
         # landmark constants
         self.margin = 10  # pixels
         self.font_size = 1
@@ -80,9 +82,9 @@ class CameraThread(QThread):
                 # Calculate and draw fps
                 cv2.putText(annotated_image,
                             f"fps: {self.calculate_fps():.2f}",
-                            (110, 40),
+                            (10, 40),
                             cv2.FONT_HERSHEY_PLAIN,
-                            3,
+                            1.5,
                             (255, 255, 255),
                             2)
                 # convert image from CV2 to Qt
@@ -91,7 +93,7 @@ class CameraThread(QThread):
                 bytes_per_line = ch * w
                 convert_to_qt_format = QImage(rgb_image.data, w, h, bytes_per_line,
                                               QImage.Format.Format_RGB888)
-                p = convert_to_qt_format.scaled(640, 480, Qt.AspectRatioMode.KeepAspectRatio)
+                p = convert_to_qt_format.scaled(h, w, Qt.AspectRatioMode.KeepAspectRatio)
                 self.changePixmap.emit(p)
             cap.release()
 
@@ -167,12 +169,22 @@ class MainWindow(QMainWindow):
         self.cam_thread.finished.connect(self.clearCam)
 
         # OSC client
-        self.osc_client = SimpleUDPClient("127.0.0.1", 8000)
+        self.osc_address = self._ui.oscAddress.text()
+        self.osc_port = self._ui.oscPort.text()
+        self.osc_client = SimpleUDPClient(self.osc_address, int(self.osc_port))
+        self._ui.oscPort.editingFinished.connect(
+            lambda: self.restart_osc_client(self._ui.oscAddress.text(), self._ui.oscPort.text()))
+
         self.cam_thread.handLandmarksResults.connect(self.sendHandLandmarkerOSC)
+
+        # connect resize handlers
+        # self._ui.camLabel.resizeEvent
 
         # connect buttons
         self._ui.startButton.clicked.connect(self.startCamera)
         self._ui.stopButton.clicked.connect(self.stopCamera)
+
+        print(self._ui.camLabel.frameRect())
 
     @Slot(QImage)
     def setImage(self, image):
@@ -226,6 +238,11 @@ class MainWindow(QMainWindow):
         # clear pixmap
         self._ui.camLabel.clear()
         self._ui.camLabel.setText('press START')
+
+    def restart_osc_client(self, address, port):
+        self.osc_address = address
+        self.osc_port = int(port)
+        self.osc_client = SimpleUDPClient(self.osc_address, self.osc_port)
 
 
 if __name__ == "__main__":

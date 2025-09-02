@@ -172,6 +172,8 @@ class MainWindow(QMainWindow):
         self.osc_address = self._ui.oscAddress.text()
         self.osc_port = self._ui.oscPort.text()
         self.osc_client = SimpleUDPClient(self.osc_address, int(self.osc_port))
+        self._ui.oscAddress.editingFinished.connect(
+            lambda: self.restart_osc_client(self._ui.oscAddress.text(), self._ui.oscPort.text()))
         self._ui.oscPort.editingFinished.connect(
             lambda: self.restart_osc_client(self._ui.oscAddress.text(), self._ui.oscPort.text()))
 
